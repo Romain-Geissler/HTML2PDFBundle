@@ -5,15 +5,15 @@ namespace HTML2PDF;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
 
 trait HTML2PDFTrait{
-	protected $HTMLToPDFConverter;
+	protected $HTMLToPDFConfiguration;
 	protected $templateEngine;
 
-	public function getHTMLToPDFConverter(){
-		return $this->HTMLToPDFConverter;
+	public function getHTMLToPDFConfiguration(){
+		return $this->HTMLToPDFConfiguration;
 	}
 
-	public function setHTMLToPDFConverter(Core $HTMLToPDFConverter){
-		$this->HTMLToPDFConverter=$HTMLToPDFConverter;
+	public function setHTMLToPDFConfiguration(array $HTMLToPDFConfiguration){
+		$this->HTMLToPDFConfiguration=$HTMLToPDFConfiguration;
 }
 
 	public function getTemplateEngine(){
@@ -27,14 +27,16 @@ trait HTML2PDFTrait{
 	public function createHTMLToPDFConverter(array $constructorArguments){
 		$core=new \ReflectionClass(__NAMESPACE__.'\\Core');
 
-		$this->setHTMLToPDFConverter($core->newInstanceArgs($constructorArguments));
+		return $core->newInstanceArgs($constructorArguments);
 	}
 
 	public function renderHTMLTemplateToPDF($template,$parameters=[]){
 		$HTMLContent=$this->templateEngine->render($template,$parameters);
+		//html2pdf seems to be stateful, so create one instance for every rendered template.
+		$HTMLToPDFConverter=$this->createHTMLToPDFConverter($this->HTMLToPDFConfiguration);
 
-		$this->HTMLToPDFConverter->writeHTML($HTMLContent);
+		$HTMLToPDFConverter->writeHTML($HTMLContent);
 
-		return $this->HTMLToPDFConverter->Output(null,true);
+		return $HTMLToPDFConverter->Output(null,true);
 	}
 }
